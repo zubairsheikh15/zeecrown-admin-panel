@@ -1,0 +1,131 @@
+// app/dashboard/customers/[id]/page.tsx
+import { createAdminClient } from "@/lib/supabase/admin";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Mail, Phone, Home, ShoppingCart } from "lucide-react";
+
+export default async function ViewCustomerPage({
+    params
+}: {
+    params: Promise<{ id: string }>
+}) {
+    const { id: customerId } = await params;
+    const supabase = createAdminClient();
+
+    // Fetch profile, addresses, orders, and user in parallel
+    const [profileRes, addressesRes, ordersRes, userRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', customerId).single(),
+        supabase.from('addresses').select('*').eq('user_id', customerId),
+        supabase.from('orders').select('*').eq('user_id', customerId).order('created_at', { ascending: false }),
+        supabase.auth.admin.getUserById(customerId)
+    ]);
+
+    const { data: profile, error: profileError } = profileRes;
+    const { data: addresses } = addressesRes;
+    const { data: orders } = ordersRes;
+    const user = userRes.data?.user;
+
+    if (profileError || !profile) {
+        notFound();
+    }
+
+    return (
+        <div className="min-h-screen bg-black text-gray-300 font-sans p-6 md:p-12">
+            <div className="max-w-screen-xl mx-auto">
+                <div className="mb-8">
+                    <Link
+                        href="/dashboard/customers"
+                        className="inline-flex items-center space-x-2 text-green-400 hover:text-green-300 transition-colors"
+                    >
+                        <ArrowLeft size={20} />
+                        <span>Back to All Customers</span>
+                    </Link>
+                </div>
+
+                {/* Customer Details Card */}
+                <div className="mb-12 backdrop-blur-xl bg-black/30 p-8 rounded-2xl border border-green-500/20 shadow-lg">
+                    <div className="flex items-center space-x-6">
+                        <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-black text-5xl font-bold">
+                            {(profile.full_name || 'U')[0]}
+                        </div>
+                        <div>
+                            <h1 className="text-4xl font-black text-white">{profile.full_name}</h1>
+                            <div className="flex items-center space-x-6 mt-2 text-gray-400">
+                                <span className="flex items-center space-x-2">
+                                    <Mail size={16} />
+                                    <span>{user?.email || 'No email'}</span>
+                                </span>
+                                {addresses && addresses.length > 0 && addresses[0].mobile_number &&
+                                    <span className="flex items-center space-x-2">
+                                        <Phone size={16} />
+                                        <span>{addresses[0].mobile_number}</span>
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Addresses and Order History */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <h2 className="text-3xl font-bold text-white mb-6 flex items-center space-x-3">
+                            <Home />
+                            <span>Addresses</span>
+                        </h2>
+                        <div className="space-y-4">
+                            {addresses && addresses.length > 0 ? (
+                                addresses.map(addr => (
+                                    <div
+                                        key={addr.id}
+                                        className="bg-gray-900/50 p-4 rounded-lg border border-gray-800"
+                                    >
+                                        <p className="font-semibold text-white">{addr.house_no}, {addr.street_address}</p>
+                                        {addr.landmark && <p className="text-gray-400">{addr.landmark}</p>}
+                                        <p className="text-gray-400">{addr.city}, {addr.state} - {addr.postal_code}</p>
+                                        <p className="text-gray-400">{addr.country}</p>
+                                        <p className="text-sm text-gray-500 mt-2">{addr.mobile_number}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-gray-500">No addresses found.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h2 className="text-3xl font-bold text-white mb-6 flex items-center space-x-3">
+                            <ShoppingCart />
+                            <span>Order History</span>
+                        </h2>
+                        <div className="space-y-4">
+                            {orders && orders.length > 0 ? (
+                                orders.map(order => (
+                                    <Link key={order.id} href={`/dashboard/orders/${order.id}`}>
+                                        <div
+                                            className="bg-gray-900/50 p-4 rounded-lg border border-gray-800 flex justify-between items-center hover:bg-gray-800/50 transition-colors cursor-pointer"
+                                        >
+                                            <div>
+                                                <p className="font-mono text-sm text-gray-400">
+                                                    #{order.id.substring(0, 8)}
+                                                </p>
+                                                <p className="text-white">
+                                                    on {new Date(order.created_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                            <p className="text-lg font-semibold text-green-400">
+                                                ₹{order.total_price.toFixed(2)}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                ))
+                            ) : (
+                                <p className="text-gray-500">No orders found.</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
