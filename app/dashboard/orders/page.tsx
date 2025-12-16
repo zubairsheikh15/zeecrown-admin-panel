@@ -40,6 +40,7 @@ type RawOrder = {
     addresses?: Address | Address[] | null
     order_items?: {
         quantity: number
+        price_at_purchase?: number
         products?: ProductInfo | ProductInfo[] | null
     }[]
 }

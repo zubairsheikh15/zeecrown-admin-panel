@@ -72,10 +72,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     // Top selling products in selected period
     const productSales = new Map<string, { name: string; quantity: number; revenue: number }>();
     orderItems?.forEach(item => {
-        const productName = item.products?.name || 'Unknown';
+        const product = Array.isArray(item.products) ? item.products[0] : item.products;
+        const productName = product?.name || 'Unknown';
         const existing = productSales.get(productName) || { name: productName, quantity: 0, revenue: 0 };
         existing.quantity += item.quantity || 0;
-        existing.revenue += (item.quantity || 0) * (item.products?.price || 0);
+        existing.revenue += (item.quantity || 0) * (product?.price || 0);
         productSales.set(productName, existing);
     });
 
@@ -268,10 +269,12 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                     </h2>
                     <div className="space-y-3">
                         {recentOrders && recentOrders.length > 0 ? (
-                            recentOrders.map((order) => (
+                            recentOrders.map((order) => {
+                                const profile = Array.isArray(order.profiles) ? order.profiles[0] : order.profiles;
+                                return (
                                 <div key={order.id} className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-800 hover:border-green-500/30 transition-colors">
                                     <div>
-                                        <p className="text-white font-medium">{order.profiles?.full_name || 'Customer'}</p>
+                                        <p className="text-white font-medium">{profile?.full_name || 'Customer'}</p>
                                         <p className="text-sm text-gray-500">
                                             {new Date(order.created_at).toLocaleDateString()} • #{order.id.substring(0, 8)}
                                         </p>
@@ -290,7 +293,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                                         </span>
                                     </div>
                                 </div>
-                            ))
+                                );
+                            })
                         ) : (
                             <p className="text-gray-500 text-center py-8">No recent orders</p>
                         )}

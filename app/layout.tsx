@@ -20,11 +20,31 @@ export const metadata: Metadata = {
   description: "Admin panel for Zee Crown",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  
+  // If publishable key is missing, render without ClerkProvider (for build)
+  if (!publishableKey) {
+    return (
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <ProgressBarProvider>
+            {children}
+          </ProgressBarProvider>
+          <Toaster richColors position="top-right" />
+        </body>
+      </html>
+    );
+  }
+
   return (
     <ClerkProvider>
       <html lang="en">

@@ -41,7 +41,6 @@ export function generateBillPDF(order: OrderData): void {
 
     // Colors
     const primaryGreen = [22, 163, 74];
-    const darkGreen = [16, 185, 129];
     const lightGray = [243, 244, 246];
     const borderGray = [229, 231, 235];
 

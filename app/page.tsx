@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Crown, ArrowRight } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-black text-gray-300 font-sans flex items-center justify-center p-4 relative overflow-hidden">

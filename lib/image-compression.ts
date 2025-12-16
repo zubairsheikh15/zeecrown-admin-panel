@@ -34,7 +34,7 @@ export async function compressImageToWebP(
     
     do {
         // Create sharp instance with rotation correction and resize if needed
-        let sharpInstance = sharp(buffer)
+        const sharpInstance = sharp(buffer)
             .rotate() // Auto-rotate based on EXIF
             .resize(targetWidth, targetHeight, {
                 fit: 'inside',
