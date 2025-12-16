@@ -21,7 +21,7 @@ export default function Home() {
 
         {/* Store Name */}
         <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent mb-4 tracking-tight drop-shadow-lg">
-          Welcome to Zee Crown
+          Welcome to Zee Crown Admin-Panel
         </h1>
 
         {/* Details */}
